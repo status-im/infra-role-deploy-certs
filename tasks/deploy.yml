@@ -1,0 +1,60 @@
+---
+- name: Create certificates directory
+  file:
+    path: '/certs/{{ item }}'
+    state: 'directory'
+    owner: '{{ deploy_certs_owner }}'
+    group: '{{ deploy_certs_group }}'
+    mode: 0755
+
+- name: Set Vault item path based on item value
+  set_fact:
+    vault_item_path: >-
+      certs/{{ 'cheapsslsecurity/' if item in ['status.im', 'keycard.tech'] else 'ssl2buy/' }}/{{ item }}
+
+- name: Copy certificate bundle file
+  copy:
+    dest: '/certs/{{ item }}/cert.ca-bundle'
+    content: '{{ lookup("vault", "{{ vault_item_path }}", field="cert.ca-bundle", stage="all", env="all") }},'
+    owner: '{{ deploy_certs_owner }}'
+    group: '{{ deploy_certs_group }}'
+    mode: 0644
+  throttle: 1
+
+- name: Copy certificate file
+  copy:
+    dest: '/certs/{{ item }}/cert.crt'
+    content: '{{ lookup("vault", "{{ vault_item_path }}", field="cert.crt", stage="all", env="all") }}'
+    owner: '{{ deploy_certs_owner }}'
+    group: '{{ deploy_certs_group }}'
+    mode: 0644
+  throttle: 1
+
+- name: Copy certificate key
+  copy:
+    dest: '/certs/{{ item }}/cert.key'
+    content: '{{lookup( "vault", "{{ vault_item_path }}" , field="cert.key", stage="all", env="all") }}'
+    owner: '{{ deploy_certs_owner }}'
+    group: '{{ deploy_certs_group }}'
+    mode: 0640
+  throttle: 1
+
+- name: Assemble certificate bundle
+  shell: |
+    awk 1 \
+      /certs/{{ item }}/cert.crt \
+      /certs/{{ item }}/cert.ca-bundle \
+      > /certs/{{ item }}/bundle.crt
+
+- name: Adjust certificate bundle perms
+  file:
+    path: /certs/{{ item }}/bundle.crt
+    owner: '{{ deploy_certs_owner }}'
+    group: '{{ deploy_certs_group }}'
+    mode: 0644
+
+- name: Validate certificate bundle
+  command: |
+    openssl verify -CAfile \
+      /certs/{{ item }}/cert.ca-bundle \
+      /certs/{{ item }}/cert.crt

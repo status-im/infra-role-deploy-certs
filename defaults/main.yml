@@ -1,0 +1,6 @@
+---
+deploy_certs_domains: []
+deploy_certs_owner: 'root'
+# IRC server can't read cert.key file from within container,
+# so we add dockremap group ownership to the cert files
+deploy_certs_group: '100000'
