@@ -15,7 +15,7 @@
 - name: Copy certificate bundle file
   copy:
     dest: '/certs/{{ item }}/cert.ca-bundle'
-    content: '{{ lookup("vault", "{{ vault_item_path }}", field="cert.ca-bundle", stage="all", env="all") }},'
+    content: '{{ lookup("vault", "{{ vault_item_path }}", field="cert.ca-bundle", stage="all", env="all") }}'
     owner: '{{ deploy_certs_owner }}'
     group: '{{ deploy_certs_group }}'
     mode: 0644
