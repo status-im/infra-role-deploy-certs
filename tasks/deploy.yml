@@ -10,7 +10,7 @@
 - name: Set Vault item path based on item value
   set_fact:
     vault_item_path: >-
-      certs/{{ 'cheapsslsecurity/' if item in ['status.im', 'keycard.tech'] else 'ssl2buy/' }}/{{ item }}
+      certs/{{ 'cheapsslsecurity/' if item in ['status.im'] else 'ssl2buy/' }}/{{ item }}
 
 - name: Copy certificate bundle file
   copy:
